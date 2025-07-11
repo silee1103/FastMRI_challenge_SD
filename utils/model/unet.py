@@ -12,6 +12,11 @@ class Unet(nn.Module):
 
         self.first_block = ConvBlock(in_chans, 2)
         self.down1 = Down(2, 4)
+        self.down2 = Down(4, 8)
+        self.down2 = Down(8, 16)
+
+        self.up3 = Up(16, 8)
+        self.up2 = Up(8, 4)
         self.up1 = Up(4, 2)
         self.last_block = nn.Conv2d(2, out_chans, kernel_size=1)
 
@@ -30,8 +35,12 @@ class Unet(nn.Module):
         input, mean, std = self.norm(input)
         input = input.unsqueeze(1)
         d1 = self.first_block(input)
-        m0 = self.down1(d1)
-        u1 = self.up1(m0, d1)
+        d2 = self.down1(d1)
+        d3 = self.down2(d2)
+        d4 = self.down3(d3)
+        u3 = self.up1(d4, d3)
+        u2 = self.up1(u3, d2)
+        u1 = self.up1(u2, d1)
         output = self.last_block(u1)
         output = output.squeeze(1)
         output = self.unnorm(output, mean, std)
